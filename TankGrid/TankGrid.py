@@ -1,3 +1,10 @@
+#Matthew Drouard 
+#Clinton Mosler
+#Stephen Roshong   
+#Anthony Urbina
+#github
+#This version includes the addition of collisions within the 'move()' function
+
 import turtle
 import math
 import random
@@ -9,7 +16,6 @@ class screensetup:
     screen.tracer(0)  
     turtle.speed(0) 
     turtle.hideturtle()
-
 
 class tanks:
     def __init__(self,x,y,angle,size,v,health,color,targetx,targety,rotate):
@@ -23,8 +29,6 @@ class tanks:
         self.targetx=targetx
         self.targety=targety
         self.rotate=rotate
-        self.gridOnOff = False
-        self.gridCount = 2
 
     def draw(self):
         turtle.color(self.color)
@@ -37,20 +41,9 @@ class tanks:
         turtle.goto(self.x,self.y)
         turtle.pd()
         turtle.goto(self.x+math.cos(self.angle)*self.size * 1.5,self.y+math.sin(self.angle)*self.size *1.5)
-
-        ##Grid Drawing
-        if(self.gridOnOff):
-            for i in range(-10,200,int(200/self.gridCount)):
-                turtle.pu()
-                turtle.goto(i,-100)
-                turtle.pd()
-                turtle.goto(i,500)
-                turtle.pu()
-                turtle.goto(-100,i)
-                turtle.pd()
-                turtle.goto(500,i)
                
     def move(self, tanks):
+        self.allowmovement = True #Sets to True
         tempX = self.x + math.cos(self.angle)*self.v # Get current X coordinate
         tempY = self.y + math.sin(self.angle)*self.v # Get current Y coordinate
 
@@ -60,14 +53,11 @@ class tanks:
                 distance = math.sqrt((tempX-tank.x)**2 + (tempY-tank.y)**2)
                 if distance < (self.size + tank.size):
                     # Collision occurred - stop the tanks
-                    self.v = 0
-                    self.rotate = 0
-                    tank.v = 0
-                    tank.rotate = 0
+                    self.allowmovement = False #moveing no longer allowed due to collision
                     return
 
         # Check for collisions with walls
-        if (tempX > 0.0 and tempX < 200.0) and (tempY > 0.0 and tempY < 200.0):
+        if (tempX > 0.0 and tempX < 200.0) and (tempY > 0.0 and tempY < 200.0) and self.allowmovement is True:
             self.x = tempX
             self.y = tempY
             self.angle += self.rotate
@@ -79,30 +69,18 @@ class tanks:
                 self.rotate = -self.rotate
             self.v = 0
 
-
-
     def target(self, x,y):
         self.targetx=x
         self.targety=y
 
     def ai(self):
-        self.angle = math.atan2(self.y - self.targety, self.x - self.targetx) * (180 / 3.14)
+        self.angle = math.atan2(self.targety - self.y, self.targetx - self.x)
 
     def controlrotation(self,rotate):
         self.rotate=rotate
 
     def controlvelocity(self,velocity):
-        self.v=velocity 
-
-    def gridToggle(self):
-        self.gridOnOff = not self.gridOnOff
-    
-    def gridNumberAdd(self):
-        self.gridCount += 1
-
-    def gridNumberMinus(self):
-        if(self.gridCount >= 2):
-            self.gridCount -= 1
+        self.v=velocity    
 
 class keyboard:
     def __init__(self,tank):
@@ -116,10 +94,6 @@ class keyboard:
         screensetup.screen.onkeypress(self.kright, "Right")
         screensetup.screen.onkeyrelease(self.krightstop, "Right")
         screensetup.screen.onkeypress(self.kend, "Escape")
-        screensetup.screen.onkeypress(self.plus,"+")
-        screensetup.screen.onkeypress(self.minus,"-")
-        screensetup.screen.onkeypress(self.GridOnOff,"g")
-
     def kmove(self):  
         keyboard.tank.controlvelocity(.2)
     def kstop(self):
@@ -132,19 +106,10 @@ class keyboard:
         keyboard.tank.controlrotation(-.02)
     def krightstop(self):
         keyboard.tank.controlrotation(0)
-    def plus(self):
-        keyboard.tank.gridNumberAdd()
-    def minus(self):
-        keyboard.tank.gridNumberMinus()
-    def GridOnOff(self):
-        keyboard.tank.gridToggle()
     def kend(self):
         keyboard.end=1
-    
-
 
 user=tanks(10,10,0,5,0,10,"blue",0,0,0)
-
 keyboard(user)
 
 numtanks= 4
@@ -168,5 +133,4 @@ while not keyboard.end:
     user.move(enemy+[user])
     user.draw()
 
-    screensetup.screen.update()         
-     
+    screensetup.screen.update()        

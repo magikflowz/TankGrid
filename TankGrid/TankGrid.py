@@ -1,13 +1,12 @@
-#Matthew Drouard 
-#Clinton Mosler
-#Stephen Roshong   
-#Anthony Urbina
-#github
-#This version includes the addition of collisions within the 'move()' function
-
 import turtle
 import math
 import random
+import pickle
+
+def square(size):
+    for _ in range(4):
+        turtle.forward(size)
+        turtle.right(90)
 
 class screensetup:
     screen = turtle.Screen()
@@ -29,6 +28,8 @@ class tanks:
         self.targetx=targetx
         self.targety=targety
         self.rotate=rotate
+        self.gridOnOff = False
+        self.gridCount = 2
 
     def draw(self):
         turtle.color(self.color)
@@ -41,6 +42,18 @@ class tanks:
         turtle.goto(self.x,self.y)
         turtle.pd()
         turtle.goto(self.x+math.cos(self.angle)*self.size * 1.5,self.y+math.sin(self.angle)*self.size *1.5)
+
+        ##Grid Drawing
+        if(self.gridOnOff):
+            for i in range(0,200,int(200 / self.gridCount)):
+                turtle.pu()
+                turtle.goto(i, 0)
+                turtle.pd()
+                turtle.goto(i,500)
+                turtle.penup()
+                turtle.goto(0, i)
+                turtle.pendown()
+                turtle.goto(500, i)
                
     def move(self, tanks):
         self.allowmovement = True #Sets to True
@@ -69,6 +82,8 @@ class tanks:
                 self.rotate = -self.rotate
             self.v = 0
 
+
+
     def target(self, x,y):
         self.targetx=x
         self.targety=y
@@ -80,7 +95,17 @@ class tanks:
         self.rotate=rotate
 
     def controlvelocity(self,velocity):
-        self.v=velocity    
+        self.v=velocity 
+
+    def gridToggle(self):
+        self.gridOnOff = not self.gridOnOff
+    
+    def gridNumberAdd(self):
+        self.gridCount += 1
+
+    def gridNumberMinus(self):
+        if(self.gridCount >= 2):
+            self.gridCount -= 1
 
 class keyboard:
     def __init__(self,tank):
@@ -94,6 +119,10 @@ class keyboard:
         screensetup.screen.onkeypress(self.kright, "Right")
         screensetup.screen.onkeyrelease(self.krightstop, "Right")
         screensetup.screen.onkeypress(self.kend, "Escape")
+        screensetup.screen.onkeypress(self.plus,"+")
+        screensetup.screen.onkeypress(self.minus,"-")
+        screensetup.screen.onkeypress(self.GridOnOff,"g")
+
     def kmove(self):  
         keyboard.tank.controlvelocity(.2)
     def kstop(self):
@@ -106,10 +135,19 @@ class keyboard:
         keyboard.tank.controlrotation(-.02)
     def krightstop(self):
         keyboard.tank.controlrotation(0)
+    def plus(self):
+        keyboard.tank.gridNumberAdd()
+    def minus(self):
+        keyboard.tank.gridNumberMinus()
+    def GridOnOff(self):
+        keyboard.tank.gridToggle()
     def kend(self):
         keyboard.end=1
+    
+
 
 user=tanks(10,10,0,5,0,10,"blue",0,0,0)
+
 keyboard(user)
 
 numtanks= 4
@@ -133,4 +171,6 @@ while not keyboard.end:
     user.move(enemy+[user])
     user.draw()
 
-    screensetup.screen.update()        
+    screensetup.screen.update()         
+     
+
